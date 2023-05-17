@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SearchOutlined, PlusOutlined, SnippetsTwoTone, InfoCircleOutlined, MailOutlined, PieChartOutlined } from '@ant-design/icons';
-import { Layout, theme, Radio, Modal, DatePicker, Space, Table, Calendar } from 'antd';
+import { Layout, theme, Radio, Modal, DatePicker, Space, Table, Checkbox, TimePicker } from 'antd';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import dayjs from 'dayjs';
@@ -14,6 +14,10 @@ import { useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 const { RangePicker } = DatePicker;
+const onChange3 = (checkedValues) => {
+  console.log('checked = ', checkedValues);
+};
+
 
 dayjs.extend(customParseFormat);
 
@@ -24,17 +28,24 @@ const range = (start, end) => {
   }
   return result;
 };
-const disabledDateTime = () => ({
-  disabledHours: () => range(0, 24).splice(4, 20),
-  disabledMinutes: () => range(30, 60),
 
-});
+const onChange = (date, dateString) => {
+  console.log(date, dateString);
+};
 
 const onPanelChange = (value, mode) => {
   console.log(value.format('YYYY-MM-DD'), mode);
 };
-
-
+const options = [];
+for (let i = 10; i < 36; i++) {
+  options.push({
+    label: i.toString(36) + i,
+    value: i.toString(36) + i,
+  });
+}
+const handleChange = (value) => {
+  console.log(`selected ${value}`);
+};
 
 
 
@@ -44,9 +55,84 @@ const Admin = () => {
   const [open, setOpen] = useState(false);
   const [data0, setData0] = useState([]);
   const [data1, setData1] = useState([]);
+  const [data2, setData2] = useState([]);
+  const [plageHoraires, setPlageHoraires] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
-  const [datadate, setDatadate] = useState([]);
   const [dateRange, setDateRange] = useState({});
+  const [selectedOption, setSelectedOption] = useState('');
+  const [value2, setValue2] = useState(0);
+  const [isChecked, setIsChecked] = useState(false);
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    setIsChecked(false);
+    setSelectedOption('');
+  };
+
+
+
+  const onChange2 = (e) => {
+    console.log('radio checked', e.target.value);
+
+    setData2({ ...data2, state: e.target.value });
+  };
+  const lundi = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, lundi: lundiValue });
+  };
+  const mardi = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, mardi: lundiValue });
+  };
+  const mercredi = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, mercredi: lundiValue });
+  };
+  const jeudi = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, jeudi: lundiValue });
+  };
+  const vendredi = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, vendredi: lundiValue });
+  };
+  const samedi = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, samedi: lundiValue });
+  };
+  const dimanche = (e) => {
+    console.log('radio checked', e.target.value);
+    const lundiValue = e.target.checked ? 1 : 0;
+    setData2({ ...data2, dimanche: lundiValue });
+  };
+
+
+
+
+  useEffect(() => {
+    console.log(data2)
+  }, [data2])
+
+
+  const handleOptionChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
+  const disabledHours1 = () => {
+    const hours = [];
+    for (let i = 0; i < 24; i++) {
+      if (i < 9 || i > 18) {
+        hours.push(i);
+      }
+    }
+    return hours;
+  };
 
 
 
@@ -79,20 +165,33 @@ const Admin = () => {
   }, [dateRange])
 
 
-  const getRdvblocker = () => {
-    fetch('http://localhost:2000/api/rdv_blocker')
+
+  const addPlageoriat = () => {
+    fetch('http://localhost:2000/api/plageoriat/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dated: data2.dated,
+        datef: data2.datef,
+        timed: data2.timed,
+        timef: data2.timef,
+        lundi: data2.lundi,
+        mardi: data2.mardi,
+        mercredi: data2.mercredi,
+        jeudi: data2.jeudi,
+        vendredi: data2.vendredi,
+        samedi: data2.samedi,
+        dimanche: data2.dimanche,
+        state: data2.state,
+      }),
+    })
       .then(response => response.json())
-      .then(data => {
-        const formattedData = data.map(item => {
-          return {
-            date: item.date,
-            heure: item.heure
-          };
-        });
-        setData0(formattedData);
-      })
-      .catch(error => console.error(error));
-  }
+      .then(data => getPlageoreat())
+      .catch(error => {
+        console.error(error);
+        // Gestion des erreurs
+      });
+  };
 
   const getRdv = () => {
     fetch('http://localhost:2000/api/clients/reserved' + (
@@ -144,6 +243,39 @@ const Admin = () => {
       })
       .catch(error => console.error(error));
   }
+
+  const getPlageoreat = () => {
+    fetch('http://localhost:2000/api/plageoriat/1' + (
+      dateRange.from ? `/${dateRange.from}/${dateRange.to}` : ''
+    ))
+      .then(response => response.json())
+      .then(data => {
+        const formattedData = data.map(item => {
+          return {
+            id: item.id,
+            dated: item.dated,
+            datef: item.datef,
+            timed: item.timed,
+            timef: item.timef,
+            lundi: item.lundi,
+            mardi: item.mardi,
+            mercredi: item.mercredi,
+            jeudi: item.jeudi,
+            vendredi: item.vendredi,
+            samedi: item.samedi,
+            dimanche: item.dimanche,
+            state: item.state,
+          };
+        });
+        setPlageHoraires(formattedData);
+      })
+      .catch(error => console.error(error));
+  }
+
+  useEffect(() => {
+    addPlageoriat()
+    getPlageoreat()
+  }, [])
 
   const columns = [
     {
@@ -213,6 +345,7 @@ const Admin = () => {
       ),
     },
   ];
+
   const columns1 = [
     {
       title: 'Nom et prénom',
@@ -276,6 +409,69 @@ const Admin = () => {
   ];
 
 
+  const columns2 = [
+    {
+      title: 'Date début',
+      dataIndex: 'dated',
+      key: 'dated',
+
+    },
+    {
+      title: 'Date fin',
+      dataIndex: 'datef',
+      key: 'datef',
+    },
+    {
+      title: 'Heure début',
+      dataIndex: 'timed',
+      key: 'timed',
+    },
+    {
+      title: 'Heure fin',
+      dataIndex: 'timef',
+      key: 'timef',
+    },
+    // {
+    //   title: 'Les jours',
+    //   render: (text) => <a>{lundi}</a>,
+    //   key: 'jour',
+    // },
+
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Space size="middle">
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => {
+              let id = record.id;
+
+              fetch(`http://localhost:2000/api/plageoriat/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  state: '0',
+                }),
+              })
+                .then(response => response.json())
+                .then(data => {
+                  console.log(data);
+                  getPlageoreat();
+                });
+            }}
+          >
+            Fermer
+          </Button>
+
+
+        </Space>
+      ),
+    },
+  ];
+
+
 
 
 
@@ -301,6 +497,7 @@ const Admin = () => {
   const [isSent, setIsSent] = useState(false);
   const appointmentDate = new Date('2023-05-01T10:00:00Z');
   const [reserved, setReserved] = useState([]);
+  const [blocked, setBlocked] = useState([]);
   const [disabledHours, setDisabledHours] = useState({});
 
 
@@ -482,6 +679,8 @@ const Admin = () => {
     data.duree && verifyReserved()
   }, [data])
 
+
+
   return (
     <Layout>
 
@@ -502,7 +701,7 @@ const Admin = () => {
             </h2></Row>
             <Row className='mt-4'>
               <div className='text-end'><Button onClick={() => setOpen(true)} style={{ width: '250px' }} className='me-0' size="sm" type="primary">
-                <InfoCircleOutlined className='me-2 fs-6 p-1 ' />Blocker des rendez-vous </Button>
+                <InfoCircleOutlined className='me-2 fs-6 p-1 ' />Gestion des plages horraire </Button>
               </div>
             </Row>
             <Row className='mt-4'>
@@ -534,73 +733,109 @@ const Admin = () => {
                 <Table className='mt-5' columns={columns1} dataSource={data1} />}
             </Row>
 
-            <Modal title="Blocker la date et l'heure"
+
+
+
+
+
+
+
+
+
+
+            <Modal title="Gestion des plages horraire"
               centered
               open={open}
-              onOk={() => { addRdvblocker(); setOpen(false) }}
+              onOk={() => {
+                addPlageoriat();navigate(0); setOpen(false);
+              }}
               onCancel={() => setOpen(false)}
               width={1000}
             >
-              <Row >
-                <Col xl='6' className=' mt-5 '>
-                  <div  >
-                    <Calendar disabledDate={disabledDate} onChange={(v) => { setData({ ...data, date: dayjs(v).format('YYYY-MM-DD') }); verifyReserved(v) }} fullscreen={false} onPanelChange={onPanelChange} />
-                  </div>
+              <Radio.Group onChange={onChange2}>
+                <Radio value={1}>Ouvrir une plage horaire</Radio>
+                <Radio value={0}>Fermer une plage horaire</Radio>
+              </Radio.Group>
+
+
+              <Row className='mt-5'>
+                <Col xl={3}>
+                  <h6>Heure début :</h6>
+                  <TimePicker onChange={(v) => { setData2({ ...data2, timed: dayjs(v).format('HH:mm') }); verifyReserved(v) }} minuteStep={15} hourStep={1} format="HH:mm" disabledHours={disabledHours1} hideDisabledOptions />
                 </Col>
-
-                <Col className='text-center'>
-
-                  <Radio.Group onChange={onChange} value={value}>
-
-                    <Radio.Group onChange={(v) => setData({ ...data, heure: v.target.value })} defaultValue="a" size="large">
-                      <div className=''>
-                        <div>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['09:00']} value="09:00">09:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['09:15']} value="09:15">09:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['09:30']} value="09:30">09:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['09:45']} value="09:45">09:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['10:00']} value="10:00">10:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['10:15']} value="10:15">10:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['10:30']} value="10:30">10:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['10:45']} value="10:45">10:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['11:00']} value="11:00">11:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['11:15']} value="11:15">11:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['11:30']} value="11:30">11:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['11:45']} value="11:45">11:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['12:00']} value="12:00">12:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['12:15']} value="12:15">12:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['12:30']} value="12:30">12:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['12:45']} value="12:45">12:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['13:00']} value="13:00">13:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['13:15']} value="13:15">13:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['13:30']} value="13:30">13:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['13:45']} value="13:45">13:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['14:00']} value="14:00">14:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['14:15']} value="14:15">14:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['14:30']} value="14:30">14:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['14:45']} value="14:45">14:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['15:00']} value="15:00">15:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['15:15']} value="15:15">15:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['15:30']} value="15:30">15:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['15:45']} value="15:45">15:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['16:00']} value="16:00">16:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['16:15']} value="16:15">16:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['16:30']} value="16:30">16:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['16:45']} value="16:45">16:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['17:00']} value="17:00">17:00</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['17:15']} value="17:15">17:15</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['17:30']} value="17:30">17:30</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['17:45']} value="17:45">17:45</Radio.Button>
-                          <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['18:00']} value="18:00">18:00</Radio.Button>
-
-                        </div>
-                      </div>
-                    </Radio.Group>
-                  </Radio.Group>
-
-
+                <Col>
+                  <h6 >Heure fin :</h6>
+                  <TimePicker onChange={(v) => { setData2({ ...data2, timef: dayjs(v).format('HH:mm') }); verifyReserved(v) }} minuteStep={15} hourStep={1} format="HH:mm" disabledHours={disabledHours1} hideDisabledOptions />
                 </Col>
+              </Row>
 
+              <Row className='mt-5' >
+                <Radio.Group onChange={handleOptionChange} value={selectedOption}>
+                  <Radio value={1}>Recurence</Radio>
+                  <Radio value={2}>Date</Radio>
+                </Radio.Group>
+              </Row>
+              {selectedOption === 1 &&
+                <>
+                  <Row className='mt-5'>
+                    <Space direction="vertical" size={12}>
+                      <RangePicker onChange={(v) => {
+                        setData2({
+                          ...data2, dated: dayjs(v[0]).format('YYYY-MM-DD'), datef: dayjs(v[1]).format('YYYY-MM-DD')
+                        });
+                        verifyReserved(v)
+                      }} />
+                    </Space>
+                  </Row>
+                  <Row className='mt-5'>
+                    <Checkbox.Group
+                      style={{
+                        width: '100%',
+                      }}
+                      onChange={onChange3}
+                    >
+                      <Row>
+                        <Col xl={6}>
+                          <Checkbox onChange={lundi} value="Lundi">Lundi</Checkbox>
+                          <br></br>
+                          <Checkbox onChange={mardi} value="Mardi">Mardi</Checkbox>
+                          <br></br>
+                          <Checkbox onChange={mercredi} value="Mercredi">Mercredi</Checkbox>
+                          <br></br>
+                          <Checkbox onChange={jeudi} value="Jeudi">Jeudi</Checkbox>
+                        </Col>
+                        <Col xl={6}>
+                          <Checkbox onChange={vendredi} value="Vendredi">Vendredi</Checkbox>
+                          <br></br>
+                          <Checkbox onChange={samedi} value="Samedi">Samedi</Checkbox>
+                          <br></br>
+                          <Checkbox onChange={dimanche} value="Dimanche">Dimanche</Checkbox>
+                        </Col>
+                      </Row>
+                      <Row> </Row>
+                    </Checkbox.Group>
+
+                  </Row>
+                </>
+              }
+              {selectedOption === 2 &&
+
+                <Row className='mt-3'>
+                  <Space direction="vertical" size={12}>
+                    <DatePicker onChange={(v) => { setData({ ...data2, dated: dayjs(v).format('YYYY-MM-DD') }); verifyReserved(v); onChange() }} />
+                  </Space>
+                </Row>
+
+              }
+
+
+
+
+              {selectedOption === 'option2' && <div>Div 2</div>}
+
+
+              <Row>
+                <Table className='mt-5' columns={columns2} dataSource={plageHoraires} />
               </Row>
             </Modal>
           </Container>

@@ -52,6 +52,9 @@ const Client = () => {
   const appointmentDate = new Date('2023-05-01T10:00:00Z');
   const [reserved, setReserved] = useState([]);
   const [disabledHours, setDisabledHours] = useState({});
+  const [enabledHours, setEnabledHours] = useState({});
+  const [dateRange, setDateRange] = useState({});
+  const [plageHoraires, setPlageHoraires] = useState([]);
 
   // const [disabledHours, setDisabledHours] = useState({});
 
@@ -224,12 +227,26 @@ const Client = () => {
     return current && (current < dayjs().endOf('day') || current.day() === 0 || current.day() === 6);
   }
 
+  const verifyEnabled = (d) => {
+    setDisabledHours({})
+    fetch(`http://localhost:2000/api/plageoriat/date/${dayjs(d).format('YYYY-MM-DD')}`)
+      .then(response => response.json())
+      .then(data => {
+        data.map((d) => {
+          setDisabledHours((disabledHours) => ({ ...disabledHours, ['' + d + '']: false }));
+        })
+        verifyReserved(d)
+      })
+      .catch(error => console.error(error));
 
-  const verifyReserved = () => {
-    setDisabledHours({
+  }
 
-    })
-    let selectedDate = dayjs(data.date).format('YYYY-MM-DD');
+  const verifyReserved = (v) => {
+
+    
+
+    let selectedDate = dayjs(v).format('YYYY-MM-DD');
+
     reserved.map((event) => {
       if (dayjs(event.start.dateTime).format('YYYY-MM-DD') == selectedDate) {
         let fromHour = dayjs(event.start.dateTime).format('HH:mm');
@@ -248,13 +265,49 @@ const Client = () => {
     })
   }
 
+
+
+  const getPlageoreat = () => {
+    fetch('http://localhost:2000/api/plageoriat/1' + (
+      dateRange.from ? `/${dateRange.from}/${dateRange.to}` : ''
+    ))
+      .then(response => response.json())
+      .then(data => {
+        const formattedData = data.map(item => {
+          return {
+            id: item.id,
+            dated: item.dated,
+            datef: item.datef,
+            timed: item.timed,
+            timef: item.timef,
+            lundi: item.lundi,
+            mardi: item.mardi,
+            mercredi: item.mercredi,
+            jeudi: item.jeudi,
+            vendredi: item.vendredi,
+            samedi: item.samedi,
+            dimanche: item.dimanche,
+            state: item.state,
+          };
+        });
+        setPlageHoraires(formattedData);
+      })
+      .catch(error => console.error(error));
+  }
+
+  useEffect(() => {
+    getPlageoreat()
+  }, [])
+
+
+
   useEffect(() => {
     console.log(disabledHours)
   }, [disabledHours])
 
-  useEffect(() => {
-    data.duree && verifyReserved()
-  }, [data])
+  // useEffect(() => {
+  //   data.duree && verifyReserved()
+  // }, [data])
 
   return (
     <Layout>
@@ -363,7 +416,7 @@ const Client = () => {
                     <Row >
                       <Col xl='' className=' mt-5 '>
                         <div  >
-                          <Calendar disabledDate={disabledDate} onChange={(v) => { setData({ ...data, date: dayjs(v).format('YYYY-MM-DD') }); verifyReserved(v) }} fullscreen={false} onPanelChange={onPanelChange} />
+                          <Calendar disabledDate={disabledDate} onChange={(v, dd) => { setData({ ...data, date: dayjs(v).format('YYYY-MM-DD') }); verifyEnabled(v); }} fullscreen={false} onPanelChange={onPanelChange} />
                         </div>
                       </Col>
                       {data.date && (
@@ -388,7 +441,7 @@ const Client = () => {
                           {visibledate && (
                             <Radio.Group onChange={onChange} value={value}>
 
-                              <Radio.Group onChange={(v) => setData({ ...data, heure: v.target.value })} defaultValue="a" size="large">
+                              <Radio.Group disabled onChange={(v) => setData({ ...data, heure: v.target.value })} defaultValue="a" size="large">
                                 <div className=''>
                                   <div>
                                     <Radio.Button className='mt-3 rounded mx-1' disabled={disabledHours['09:00']} value="09:00">09:00</Radio.Button>
